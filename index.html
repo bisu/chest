@@ -1,0 +1,179 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+<!-- FAVICON -->
+<link rel="icon" type="image/png" sizes="32x32" href="public/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="public/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="public/favicon-16x16.png">
+<!-- END FAVICON -->
+<style type="text/css">
+img{position: absolute;}
+.footman{position: absolute;background-repeat:no-repeat;/*border: red 1px solid*/}
+.tile{background-color: black;position: absolute;border: black 1px solid}
+.mobile-console{position: absolute;}
+</style>
+</head>
+<body>
+
+<!-- <script id="template-search-okres" type="text/x-template"></script> -->
+<script src="libs/jquery.min.js"></script>
+<script src="libs/fastclick.js"></script>
+<script src="libs/mainloop.min.js"></script>
+<script>
+FastClick.attach(document.body);
+
+//DOM
+var $body = $("body");
+var $doc = $(document);
+
+//GLOBLAS
+//mobile console
+function mc(txt){
+  var txt = txt.toString();
+
+  if($(".mobile-console").length === 0){
+    $("<div class='mobile-console'></div>").text(txt).css({
+      left:"10px",
+      top: 0.75*screen.height + "px"
+    }).appendTo($body);       
+  }else{
+    $(".mobile-console").text(txt);
+  }
+
+}
+
+var graphicsParams = {
+  spaceLeftRight: 15,
+  spaceTop: 50,
+} 
+
+var tileParams = (function(){
+  var width = (screen.width - 2*graphicsParams.spaceLeftRight)/8;
+  var height = width;
+  return {
+    width: width,
+    height: height
+  }
+})();
+
+var footmanParams = (function(){
+  var widthHeight = tileParams.width*0.8;
+  return {
+    widthHeight: widthHeight
+  }
+})();
+
+/*var footmanFramesImg = (function(){
+
+  var images = []; 
+  var widthHeight = footmanParams.widthHeight
+
+  for(var i=0; i<12; i++){
+    images[i] = new Image(widthHeight, widthHeight);
+    images[i].src = "public/imgs/footmangif/frame-0" + (i>8?"":"0") + (i+1) + ".gif";    
+  }
+
+  return images;
+})();*/
+
+var footmanFrames = (function(){
+
+  var frames = [];
+  for(var i=0; i<12; i++){
+    frames[i] = "public/imgs/footmangif/frame-0" + (i>8?"":"0") + (i+1) + ".gif";    
+  }
+  return frames;
+})();
+
+
+var map = [
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0
+];
+
+
+;(function(){
+
+  var $tiles = $();
+  var $tile;
+  var color = 1;
+  var leftPos;
+  var topPos = graphicsParams.spaceTop - tileParams.height;
+
+  for(var j=0;j<8;j++){
+    
+    topPos = topPos + tileParams.height;
+    leftPos = graphicsParams.spaceLeftRight - tileParams.width;
+
+    for(var i=0;i<8;i++){
+      leftPos = leftPos + tileParams.width;
+      color = !color;
+      $tile = $("<div class='tile' id='" + j + "-" + i + "'></div>").css({
+        top:  topPos + "px",
+        left: leftPos + "px",
+        width: tileParams.width,
+        height: tileParams.height,
+        backgroundColor: "white"//color ? "black" : "red"
+      });
+      $tiles = $tiles.add($tile);
+    }//inner loop end
+  }//outer loop end
+  $body.append($tiles);
+})();
+
+
+//===FOOTMAN==//
+$body.on("click", ".tile", function(ev){
+  mc(blockmv);
+});
+
+var footman = $("<div class='footman'></div>").css({
+  width: footmanParams.widthHeight,
+  height: footmanParams.widthHeight,
+  backgroundImage: "url(" + footmanFrames[0] + ")",
+  backgroundSize: footmanParams.widthHeight +"px" //+  + "px";
+});
+
+var blockmv = false;
+var inc = 0;
+
+var l = $("#5-4").position().left;
+var t = $("#5-4").position().top+5;
+
+footman.css({
+  top: t,
+  left: l
+}).appendTo($body);
+
+/*setInterval(function(){
+  if(inc===11){
+    footman.css({
+      backgroundImage: "url(" + footmanFrames[11] + ")"
+    })
+    inc = 0;
+  }else{
+    footman.css({
+      backgroundImage: "url(" + footmanFrames[inc] + ")"
+    })
+    inc++;
+  }
+
+},50);*/
+
+/*function update(delta){
+
+}*/
+
+
+</script>
+</body>
+</html>

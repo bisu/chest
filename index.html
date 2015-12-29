@@ -131,10 +131,10 @@ var map = [
 })();
 
 
+
+
 //===FOOTMAN==//
-$body.on("click", ".tile", function(ev){
-  mc(blockmv);
-});
+var animating = false;
 
 var footman = $("<div class='footman'></div>").css({
   width: footmanParams.widthHeight,
@@ -143,31 +143,57 @@ var footman = $("<div class='footman'></div>").css({
   backgroundSize: footmanParams.widthHeight +"px" //+  + "px";
 });
 
-var blockmv = false;
-var inc = 0;
-
-var l = $("#5-4").position().left;
-var t = $("#5-4").position().top+5;
+var l = $("#5-4").position().left+5;
+var t = $("#5-4").position().top+10;
 
 footman.css({
   top: t,
   left: l
 }).appendTo($body);
 
-/*setInterval(function(){
-  if(inc===11){
-    footman.css({
-      backgroundImage: "url(" + footmanFrames[11] + ")"
-    })
-    inc = 0;
-  }else{
-    footman.css({
-      backgroundImage: "url(" + footmanFrames[inc] + ")"
-    })
-    inc++;
+
+$body.on("click", ".tile", function(ev){
+  if(animating){
+    console.log("we are animating");
+    return;
   }
 
-},50);*/
+  var l = $(this).position().left+5;
+  var t = $(this).position().top+10;
+
+  animating = true;
+
+  var inc = 0;
+  (function gogogo(){
+    
+    if(!animating){
+      return;
+    }
+
+    if(inc===11){
+      footman.css({
+        backgroundImage: "url(" + footmanFrames[11] + ")"
+      })
+      inc = 0;
+    }else{
+      footman.css({
+        backgroundImage: "url(" + footmanFrames[inc] + ")"
+      })
+      inc++;
+    }
+    setTimeout(gogogo,35);
+  })();  
+
+  footman.animate({
+    left:l,
+    top:t
+  }, 450, function(){
+    animating = false;
+    console.log("animation complete");
+  })
+});
+
+
 
 /*function update(delta){
 

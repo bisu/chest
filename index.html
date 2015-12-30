@@ -11,8 +11,8 @@
 <!-- END FAVICON -->
 <style type="text/css">
 img{position: absolute;}
-.footman{position: absolute;background-repeat:no-repeat;/*border: red 1px solid*/}
-.tile{background-color: black;position: absolute;border: black 1px solid}
+.footman{position: absolute;/*background-repeat:no-repeat;border: red 1px solid*/;/*background: url(public/imgs/sprite.png) 0 0 no-repeat*/}
+.tile{background-color: black;position: absolute;border: gray 1px solid}
 .mobile-console{position: absolute;}
 </style>
 </head>
@@ -21,7 +21,7 @@ img{position: absolute;}
 <!-- <script id="template-search-okres" type="text/x-template"></script> -->
 <script src="libs/jquery.min.js"></script>
 <script src="libs/fastclick.js"></script>
-<script src="libs/mainloop.min.js"></script>
+<!-- <script src="libs/mainloop.min.js"></script> -->
 <script>
 FastClick.attach(document.body);
 
@@ -46,7 +46,7 @@ function mc(txt){
 }
 
 var graphicsParams = {
-  spaceLeftRight: 15,
+  spaceLeftRight: 30,
   spaceTop: 50,
 } 
 
@@ -59,35 +59,80 @@ var tileParams = (function(){
   }
 })();
 
+//Can tray also this way, second answer: http://stackoverflow.com/questions/2430206/how-can-i-scale-an-image-in-a-css-sprite
+
 var footmanParams = (function(){
-  var widthHeight = tileParams.width*0.8;
+
+  var scale = 1;
+
+  var widthHeight = tileParams.width * scale;
+  var backgroundWholeSprite = {};
+  var backgroundStep = widthHeight;
+
+  backgroundWholeSprite.width = widthHeight * 11;
+  backgroundWholeSprite.height = widthHeight;
+
   return {
-    widthHeight: widthHeight
+    widthHeight: widthHeight,
+    backgroundWholeSprite: backgroundWholeSprite,
+    backgroundStep: backgroundStep
   }
 })();
-
-/*var footmanFramesImg = (function(){
-
-  var images = []; 
-  var widthHeight = footmanParams.widthHeight
-
-  for(var i=0; i<12; i++){
-    images[i] = new Image(widthHeight, widthHeight);
-    images[i].src = "public/imgs/footmangif/frame-0" + (i>8?"":"0") + (i+1) + ".gif";    
-  }
-
-  return images;
-})();*/
 
 var footmanFrames = (function(){
 
-  var frames = [];
-  for(var i=0; i<12; i++){
-    frames[i] = "public/imgs/footmangif/frame-0" + (i>8?"":"0") + (i+1) + ".gif";    
+  var step = footmanParams.backgroundStep;
+  var frames = {};
+
+  frames.current = 1
+
+  frames.currentPosition = function(){
+    return -((11-this.current) * step);
   }
+
+  frames.next = function(){
+    this.current = this.current === 11 ? 1 : this.current+1;
+    footman.css({
+      backgroundPosition: -((11-this.current) * step) +"px 0px"
+    });
+  }
+
+  frames.custom = function(frameNum){
+
+    if( !$.isNumeric(frameNum) ){
+      console.log("not a number");
+      return 
+    }
+
+    //cast to int
+    frameNum = parseInt(frameNum, 10); 
+
+    if( frameNum < 0 || frameNum > 11 ){
+      console.log("out of bounds");
+      return 
+    }
+
+    footman.css({
+      backgroundPosition: -((11-frameNum) * step) +"px 0px"
+    });
+  }
+
+  frames.attack = function(){
+
+  }
+
   return frames;
 })();
 
+var sprites = [
+"grass-link",
+"tree-link",
+"tree-link",
+"tree-link",
+"rock-link",
+"gem-link",
+"gem-link"
+]
 
 var map = [
 0,0,0,0,0,0,0,0,
@@ -134,33 +179,79 @@ var map = [
 
 
 //===FOOTMAN==//
+//TEMP
+$(".tile").css("backgroundColor", "#bada55");
+
 var animating = false;
 
+//FIX move generation to html css
 var footman = $("<div class='footman'></div>").css({
   width: footmanParams.widthHeight,
   height: footmanParams.widthHeight,
-  backgroundImage: "url(" + footmanFrames[0] + ")",
-  backgroundSize: footmanParams.widthHeight +"px" //+  + "px";
+  background: "url(public/imgs/sprite.png) no-repeat",
+  backgroundSize: footmanParams.backgroundWholeSprite.width+"px"+" "+footmanParams.backgroundWholeSprite.height+"px",
+  backgroundPosition: footmanFrames.currentPosition() + "px 0px"
+}).data({
+  tile:[5,4]
 });
 
-var l = $("#5-4").position().left+5;
-var t = $("#5-4").position().top+10;
+var l = $("#5-4").position().left;
+var t = $("#5-4").position().top;
 
 footman.css({
   top: t,
-  left: l
+  left: l,
 }).appendTo($body);
 
 
+
+//TEMP - attack
+;(function (arr){
+
+  var miliseconds = 300;
+  var pointer = 0;
+  var len = arr.length;
+
+  ;(function seq(){
+    footmanFrames.custom( arr[pointer] );
+    pointer = pointer < len-1 ? pointer+1 : 0;
+    setTimeout(seq, miliseconds);
+  })();
+
+})([1,6]);
+
+
 $body.on("click", ".tile", function(ev){
+
+  //check if you can go to that tile
+  var targetTile = this.id.split("-").map(function(el){return parseInt(el,10)});
+  var currentTile = footman.data("tile");
+  if(Math.abs(targetTile[0] - currentTile[0]) > 1 || Math.abs(targetTile[1] - currentTile[1]) > 1){
+    console.log("tiles too far");
+    return;
+  }
+
+  //change rotation of sprite if we are facing right or left
+  if(currentTile[1] > targetTile[1]){
+    footman.css({transform: "scaleX(-1)"});
+
+  }else if(currentTile[1] < targetTile[1]){
+    footman.css({transform: "scaleX(1)"});
+
+  }else{
+    //do nothing - dont change rotation
+  }
+
+  //quit if we are currently animating
   if(animating){
     console.log("we are animating");
     return;
   }
 
-  var l = $(this).position().left+5;
-  var t = $(this).position().top+10;
+  var l = $(this).position().left;
+  var t = $(this).position().top;
 
+  //we started animating switch
   animating = true;
 
   var inc = 0;
@@ -170,17 +261,8 @@ $body.on("click", ".tile", function(ev){
       return;
     }
 
-    if(inc===11){
-      footman.css({
-        backgroundImage: "url(" + footmanFrames[11] + ")"
-      })
-      inc = 0;
-    }else{
-      footman.css({
-        backgroundImage: "url(" + footmanFrames[inc] + ")"
-      })
-      inc++;
-    }
+    footmanFrames.next();
+
     setTimeout(gogogo,35);
   })();  
 
@@ -190,6 +272,9 @@ $body.on("click", ".tile", function(ev){
   }, 450, function(){
     animating = false;
     console.log("animation complete");
+
+    //change data about current tile
+    footman.data({tile:targetTile});
   })
 });
 

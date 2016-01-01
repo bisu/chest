@@ -13,10 +13,12 @@
 body{background: url("public/imgs/noise-bg4.png");}
 /*img{position: absolute;}*/
 .footman{position: absolute;/*background-repeat:no-repeat;border: red 1px solid*/;/*background: url(public/imgs/sprite.png) 0 0 no-repeat*/}
-.tile{background:url("public/imgs/grass.png") 0 0 no-repeat;background-color: green; /*background-size:50px 50px*/; ;position: absolute;border: black 1px solid}
+.tile{background:url("public/imgs/grass.png") 0 0 no-repeat;background-color: green; ;position: absolute;border: black 1px solid}
 .sprites{position: absolute;}
 .mobile-console{position: absolute;}
 .sword{position: absolute;border: 1px black solid;}
+.spider-jaro{position: absolute;/*border: 1px black solid;*/}
+.macier{position: absolute;}
 </style>
 </head>
 <body>
@@ -125,8 +127,27 @@ var footmanFrames = (function(){
     });
   }
 
-  frames.attack = function(){
+  frames.attack = function(arr, callback){//[1,6]
 
+      var miliseconds = 80;
+      var pointer = 0;
+      var len = arr.length;
+      var end = 4
+
+      ;(function seq(){
+
+        if(end === 0){
+          callback();
+          return
+        }else{
+          end--;
+        }
+
+        footmanFrames.custom( arr[pointer] );
+        pointer = pointer < len-1 ? pointer+1 : 0;
+        setTimeout(seq, miliseconds);
+      })();
+    
   }
 
   return frames;
@@ -144,9 +165,7 @@ null,//0
 "public/imgs/tree.png",//2
 "public/imgs/bush2.png",//3
 "public/imgs/rock.png",//4
-"gem-link",
-"gem-link"
-]
+];
 
 ;(function(){
 
@@ -176,20 +195,19 @@ null,//0
   $body.append($tiles);
 })();
 
+//where are trees, rocks etc
+var spriteMask = [
+0,0,0,4,4,0,0,2,
+2,0,3,4,0,0,2,2,
+2,2,1,0,0,0,0,2,
+0,0,3,0,1,0,0,2,
+3,0,0,0,0,0,3,0,
+0,0,1,0,0,0,4,4,
+2,4,0,0,0,0,2,0,
+2,0,2,2,0,2,2,2
+];
 
 ;(function(){
-
-  //where are trees, rocks etc
-  var spriteMask = [
-  0,0,0,4,4,0,0,2,
-  2,0,1,0,0,0,2,2,
-  2,2,0,0,0,0,0,2,
-  0,0,3,0,1,0,0,2,
-  3,0,0,0,0,0,3,0,
-  0,0,1,0,0,0,0,4,
-  2,4,0,0,0,0,2,0,
-  2,0,2,2,0,2,2,2
-  ];
 
   var $tiles = $();
   var $tile;
@@ -219,8 +237,8 @@ null,//0
 
 })();
 
-//add sword
 //TEMP
+//add sword
 $("<div class='sword'></div>").css({
   width: tileParams.width*1.5,
   height: tileParams.width*1.5,
@@ -230,10 +248,106 @@ $("<div class='sword'></div>").css({
   backgroundSize: tileParams.width*1.5 + "px " + tileParams.width*1.5 + "px"
 }).appendTo($body);
 
+//TEMP
+//add jaro-spider
+var wJaro = tileParams.width*2.1;
+var hJaro = tileParams.width*1.8;
+
+$("<div class='spider-jaro'></div>").css({
+  width:  wJaro + "px",
+  height: hJaro + "px",
+  left: $("#0-1").position().left + "px",
+  top: $("#0-1").position().top - tileParams.width*0.4 + "px", 
+  background: "url(public/imgs/spider-jaro2.png) no-repeat",
+  backgroundSize: wJaro*2 + "px " + hJaro + "px",
+  backgroundPosition:  0 + "px 0px"
+}).appendTo($body);
+
+changeEyesJaro = (function(){
+
+  var inc = 0
+  var ciel = 10
+  var change = true;
+
+  return function(){
+    console.log(inc);
+    inc = inc === ciel ? 0 : inc+1;
+
+    if(inc){
+      return;
+    }
+
+    if(change){
+      $(".spider-jaro").css({
+        backgroundPosition: -wJaro +"px 0px"
+      });
+      change = !change;
+    }else{
+      $(".spider-jaro").css({
+        backgroundPosition: "0px 0px"
+      });
+      change = !change;
+    } 
+  }
+})();
+
 //make background image the size of the tile
 $(".tile").css({
   backgroundSize: tileParams.width + "px" + " " + tileParams.width + "px"
 })
+
+//TEMP
+//macierewicz random
+function macierGenerator(){
+
+  function rand(){
+    return Math.floor(Math.random()*8);
+  }
+
+  function macierGo(j,n, spriteMaskIndex){
+
+    //update spriteMap
+    spriteMask[spriteMaskIndex] = 10;
+
+    var wMacier = tileParams.width*0.7
+    var hMacier = tileParams.width*0.8
+
+    $macier = $("<div class='macier' id='macier-" + j + "-" + n + "'></div>").css({
+      top: $("#"+ j + "-" + n).position().top + tileParams.width*0.1 + "px",
+      left: $("#"+ j + "-" + n).position().left + tileParams.width*0.2 + "px",
+      width: tileParams.width,
+      height: tileParams.width,
+      background: "url(public/imgs/macierewicz.png) no-repeat",
+      backgroundSize: wMacier + "px "+ hMacier + "px"
+    }).appendTo($body);
+  }
+
+  var t = rand();
+  var l = rand();
+  var tl = t*8+l;
+
+  var footmanTile = footman.data("tile")[0] *8 + footman.data("tile")[1];
+
+  if(!spriteMask[tl] && tl !== 0 && tl !== 1 && tl !== 2 && tl !== 9 && tl !== footmanTile){
+
+    //place macier on map
+    macierGo(t,l);
+  
+  }else{
+    //look for empty space
+    for(var i=0, len=spriteMask.length; i<len; i++){
+      var j = Math.floor(i/8);
+      var n = i%8;
+      if(!spriteMask[i] && i !== 0 && i !== 1 && i !== 2 && i !== 9 && i !== footmanTile){
+        macierGo(j,n,i);
+        break;        
+      }else{
+        continue;
+      }
+    }//end for
+  }//end else
+
+}
 
 //make corner tiles rounded
 $("#0-0").css({"border-top-left-radius":tileParams.borderRad+"px"});$("#0-7").css({"border-top-right-radius":tileParams.borderRad+"px"});$("#7-0").css({"border-bottom-left-radius":tileParams.borderRad+"px"});$("#7-7").css({"border-bottom-right-radius":tileParams.borderRad+"px"});  
@@ -272,6 +386,7 @@ footman.css({
 //======================//
 
 //TEMP
+var blockev = false;
 var footmanMove = false;
 //TEMP - attack
 /*;(function (arr){
@@ -290,6 +405,11 @@ var footmanMove = false;
 
 
 $body.on("click", ".tile", function(ev){
+
+  if(blockev){
+    console.log("events are blocked");
+    return;
+  }
 
   //check if you can go to that tile
   var targetTile = this.id.split("-").map(function(el){return parseInt(el,10)});
@@ -319,6 +439,9 @@ $body.on("click", ".tile", function(ev){
   //start moving switch
   footmanMove = true;
 
+  //block other events
+  blockev = true;
+
   var l = $(this).position().left;
   var t = $(this).position().top;
 
@@ -327,11 +450,30 @@ $body.on("click", ".tile", function(ev){
     top:t
   }, 450, function(){
     footmanMove = false;
+    blockev = false;
     console.log("animation complete");
 
     //change data about current tile
     footman.data({tile:targetTile});
   })
+});
+
+$body.on("click", ".sword", function(ev){
+
+    if(blockev){
+      console.log("events are blocked");
+      return
+    }
+
+    console.log("sword event");
+
+    blockev = true;
+    footmanFrames.attack([2,6], function(){
+
+      blockev = false;
+      return;
+    });
+
 });
 
 //game loop
@@ -342,8 +484,12 @@ $body.on("click", ".tile", function(ev){
     footmanFrames.next();
   }
 
+  changeEyesJaro();
+
   setTimeout(gameOn, 40);
 })();  
+
+macierGenerator();
 
 //======================//
 //======4..END ANIMATE=====//

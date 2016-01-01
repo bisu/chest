@@ -16,6 +16,7 @@ body{background: url("public/imgs/noise-bg4.png");}
 .tile{background:url("public/imgs/grass.png") 0 0 no-repeat;background-color: green; /*background-size:50px 50px*/; ;position: absolute;border: black 1px solid}
 .sprites{position: absolute;}
 .mobile-console{position: absolute;}
+.sword{position: absolute;border: 1px black solid;}
 </style>
 </head>
 <body>
@@ -218,6 +219,17 @@ null,//0
 
 })();
 
+//add sword
+//TEMP
+$("<div class='sword'></div>").css({
+  width: tileParams.width*1.5,
+  height: tileParams.width*1.5,
+  left: $("#7-3").position().left + tileParams.width/4 + "px",
+  top: $("#7-3").position().top + tileParams.width*1.5 + "px",
+  background: "url(public/imgs/sword.gif) no-repeat",
+  backgroundSize: tileParams.width*1.5 + "px " + tileParams.width*1.5 + "px"
+}).appendTo($body);
+
 //make background image the size of the tile
 $(".tile").css({
   backgroundSize: tileParams.width + "px" + " " + tileParams.width + "px"
@@ -231,9 +243,6 @@ $("#0-0").css({"border-top-left-radius":tileParams.borderRad+"px"});$("#0-7").cs
 //======================//
 //======3..FOOTMAN=====//
 //======================//
-
-//TEMP
-var animating = false;
 
 //FIX move generation to html css
 var footman = $("<div class='footman'></div>").css({
@@ -255,6 +264,15 @@ footman.css({
 }).appendTo($body);
 
 
+//======3..END FOOTMAN =====//
+
+
+//======================//
+//======4..ANIMATE=====//
+//======================//
+
+//TEMP
+var footmanMove = false;
 //TEMP - attack
 /*;(function (arr){
 
@@ -292,35 +310,23 @@ $body.on("click", ".tile", function(ev){
     //do nothing - dont change rotation
   }
 
-  //quit if we are currently animating
-  if(animating){
-    console.log("we are animating");
+  //quit if we are currently moving
+  if(footmanMove){
+    console.log("we are moving");
     return;
   }
 
+  //start moving switch
+  footmanMove = true;
+
   var l = $(this).position().left;
   var t = $(this).position().top;
-
-  //we started animating switch
-  animating = true;
-
-  var inc = 0;
-  (function gameOn(){
-    
-    if(!animating){
-      return;
-    }
-
-    footmanFrames.next();
-
-    setTimeout(gameOn, 40);
-  })();  
 
   footman.animate({
     left:l,
     top:t
   }, 450, function(){
-    animating = false;
+    footmanMove = false;
     console.log("animation complete");
 
     //change data about current tile
@@ -328,7 +334,20 @@ $body.on("click", ".tile", function(ev){
   })
 });
 
-//======3..END FOOTMAN======//
+//game loop
+;(function gameOn(){
+  
+  //animate footman move
+  if(footmanMove){
+    footmanFrames.next();
+  }
+
+  setTimeout(gameOn, 40);
+})();  
+
+//======================//
+//======4..END ANIMATE=====//
+//======================//
 </script>
 </body>
 </html>
